@@ -100,9 +100,9 @@ info:
 	@echo "Source dir:" $(SRC_DIR)
 	@echo "Installation dir:" $(ROOT_DIR)
 	@echo "Packages sources:" $(REPOS)
-	@echo "Package target:" $(LIB_DIR)
+	@echo "Packages target:" $(LIB_DIR)
 	@echo "libPaths:" `$(RRscript) -e ".libPaths()"`
-	@echo "# If versions and paths are inconsitent," \
+	@echo "# If versions and paths are inconsistent," \
 	      "check that you've added the multiR"
 	@echo "# Rprofile_template code to your" \
 	      ".Rprofile file.)"
@@ -144,6 +144,7 @@ make-check:
 	@echo "Next step: install"
 
 install:
+	rm -rf $(INSTALL_DIR)
 	$(MAKE) -C $(SRC_DIR) install
 	@echo "Next steps: make-aliases (optional), packages-all (optional)"
 
