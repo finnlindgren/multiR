@@ -157,11 +157,11 @@ make-aliases:
 
 packages-install:
 	mkdir -p $(LIB_DIR)
-	$(RRscript) -e "installed <- installed.packages(); old <- old.packages(repos = c($(REPOS))); pkg <- c($(PACKAGES)); pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); install.packages(pkg, lib = '$(LIB_DIR)', repos = c($(REPOS)), dependencies = TRUE)"
+	$(RRscript) -e "repos <- c($(REPOS)); lib_dir <- '$(LIB_DIR)'; pkg <- c($(PACKAGES)); installed <- installed.packages()[,"Package"]; old <- old.packages(repos = repos)[,'Package']; pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); install.packages(pkgs = pkg, lib = lib_dir, repos = repos, dependencies = TRUE)"
 
 packages-upgrade:
 	mkdir -p $(LIB_DIR)
-	$(RRscript) -e "old <- old.packages(repos = c($(REPOS))); install.packages(old, lib = '$(LIB_DIR)', repos = c($(REPOS)), dependencies = TRUE)"
+	$(RRscript) -e "repos <- c($(REPOS)); lib_dir <- '$(LIB_DIR)'; old <- old.packages(repos = repos)[,'Package']; install.packages(pkgs = old, lib = lib_dir, repos = repos, dependencies = TRUE)"
 
 packages-all:
 	$(MULTI_R) PACKAGES="$(PKG_COMMON), $(PKG_TIDYVERSE), $(PKG_DEVTOOLS), $(PKG_GEO)" packages-install
