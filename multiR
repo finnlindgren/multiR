@@ -1,0 +1,184 @@
+#!/usr/bin/make -f
+
+R_VERSION?=4.0.0
+PACKAGES?=
+
+MULTI_R?=$(shell which multiR)
+ifeq (devel,$(MULTI_R))
+  MULTI_R:=./multiR
+endif
+
+ROOT_PREFIX?=$(HOME)/local
+SRC_PREFIX?=$(ROOT_PREFIX)/src
+BASH_ALIASES_FILENAME?=$(HOME)/.bash_aliases
+
+R_FULL_VERSION:=R-$(R_VERSION)
+ifeq (devel,$(R_VERSION))
+  R_MAJOR_VERSION:=devel
+else
+  R_MAJOR_VERSION:=$(shell echo $(R_VERSION) | sed "s/\([^.]*\).*/\1/")
+endif
+
+ROOT_DIR=$(ROOT_PREFIX)/$(R_FULL_VERSION)
+SRC_DIR=$(SRC_PREFIX)/$(R_FULL_VERSION)
+
+PKG_COMMON='testthat', 'raster', \
+  'shiny', 'RColorBrewer', 'knitr', 'rmarkdown'
+PKG_TIDYVERSE='tidyverse', 'ggplot2'
+PKG_DEVTOOLS='devtools', 'usethis', 'testthat', 'lintr', 'styler'
+PKG_GEO='ggmap', 'rgl', 'sphereplot', 'sp', 'rgdal', 'rgeos', \
+  'spatstat', 'spatstat.data', 'maptools'
+
+REPOS=\
+  INLA='https://inla.r-inla-download.org/R/testing',\
+  CRAN='https://cloud.r-project.org/'
+SYSTEM_LIB_DEV=\
+  tcl8.6-dev tk8.6-dev \
+  libx11-dev libmagick++-dev libgit2-dev libssh2-1-dev \
+  libfftw3-dev bwidget \
+  openjdk-11-jdk-headless \
+  libpcre2-dev
+
+R_FILENAME=$(R_FULL_VERSION).tar.gz
+ifeq (devel,$(R_MAJOR_VERSION))
+  R_URL_ROOT=https://stat.ethz.ch/R/daily/
+else
+  R_URL_ROOT=https://cran.r-project.org/src/base/R-$(R_MAJOR_VERSION)/
+endif
+R_URL=$(R_URL_ROOT)$(R_FILENAME)
+
+INSTALL_DIR=$(ROOT_DIR)
+LIB_DIR=$(ROOT_DIR)-lib
+
+BIN_DIR=$(INSTALL_DIR)/bin
+RR=$(BIN_DIR)/R
+RRscript=$(BIN_DIR)/Rscript
+
+default:
+	@echo "Usage: multiR R_VERSION=... [CMD]"
+	@echo ""
+	@echo "   CMD should be one of the following targets:"
+	@echo ""
+	@echo "       info (show the target R version and path information)"
+	@echo "       prepare-system (system library installation, optional)"
+	@echo ""
+	@echo "   Download and build:"
+	@echo "       build (download+configure+make+install)"
+	@echo "       download"
+	@echo "       configure"
+	@echo "       make"
+	@echo "       make-check (optional)"
+	@echo "       install"
+	@echo "       make-aliases (optional)"
+	@echo ""
+	@echo "   Optional package installation:" 
+	@echo "       packages-install (install/upgrade specified packages)"
+	@echo "       packages-upgrade (upgrade old packages)"
+	@echo "       packages-all (Run the collection of packages-* targets)"
+	@echo "       packages-common (install commonly used packages)"
+	@echo "       packages-tidyverse (install commonly used packages)"
+	@echo "       packages-devtools (install commonly used packages)"
+	@echo "       packages-geo (install commonly used packages)"
+	@echo ""
+	@echo "Workflow:"
+	@echo "   multiR R_VERSION ... info"
+	@echo "   multiR R_VERSION ... build"
+	@echo "   multiR R_VERSION ... make-aliases"
+	@echo "   multiR R_VERSION ... packages-all"
+	@echo "   multiR R_VERSION ... packages-upgrade"
+	@echo ""
+	@echo "Examples: multiR R_VERSION=3.6.2 CMD"
+	@echo "          multiR R_VERSION=devel CMD"
+	@echo "          multiR R_VERSION=3.6.2 PACKAGES=\"'styler', 'shiny'\" packages-install"
+
+info:
+	@echo "MULTI_R = "$(MULTI_R)
+	@echo "R_VERSION = "$(R_VERSION)
+	@echo "R_FULL_VERSION = "$(R_FULL_VERSION)
+	@echo "R_MAJOR_VERSION = "$(R_MAJOR_VERSION)
+	@echo "R_URL = "$(R_URL)
+	@echo "Source dir:" $(SRC_DIR)
+	@echo "Installation dir:" $(ROOT_DIR)
+	@echo "Packages sources:" $(REPOS)
+	@echo "Package target:" $(LIB_DIR)
+	@echo "libPaths:" `$(RRscript) -e ".libPaths()"`
+	@echo "# If versions and paths are inconsitent," \
+	      "check that you've added the multiR"
+	@echo "# Rprofile_template code to your" \
+	      ".Rprofile file.)"
+recursive-info:
+	$(MULTI_R) info
+
+build:
+	$(MULTI_R) download
+	$(MULTI_R) configure
+	$(MULTI_R) make
+	$(MULTI_R) install
+
+download:
+	rm -rf $(SRC_DIR)
+	mkdir -p $(SRC_PREFIX)
+	cd $(SRC_PREFIX) && \
+	    curl -O $(R_URL) && \
+	    tar xzvf $(R_FILENAME)
+	@echo "Next step: prepare (optional), configure"
+
+prepare-system:
+	sudo aptitude update
+	sudo aptitude install $(SYSTEM_LIB_DEV)
+
+configure:
+	cd $(SRC_DIR) && \
+	./configure --prefix="$(INSTALL_DIR)" --enable-R-shlib
+	@echo "Next steps: make, make-check, install"
+
+make:
+	$(MAKE) -j -C $(SRC_DIR)
+	@echo "Next steps: make-check, install"
+
+clean:
+	$(MAKE) -j -C $(SRC_DIR) clean
+
+make-check:
+	$(MAKE) -C $(SRC_DIR) check
+	@echo "Next step: install"
+
+install:
+	$(MAKE) -C $(SRC_DIR) install
+	@echo "Next steps: make-aliases (optional), packages-all (optional)"
+
+make-aliases:
+	echo "alias R-$(R_VERSION)='$(RR)'" >> $(BASH_ALIASES_FILENAME)
+	echo "alias Rscript-$(R_VERSION)='$(RRscript)'" >> $(BASH_ALIASES_FILENAME)
+	echo "alias rstudio-$(R_VERSION)='export RSTUDIO_WHICH_R=$(RR) && rstudio'" >> $(BASH_ALIASES_FILENAME)
+
+
+
+
+packages-install:
+	mkdir -p $(LIB_DIR)
+	$(RRscript) -e "installed <- installed.packages(); old <- old.packages(repos = c($(REPOS))); pkg <- c($(PACKAGES)); pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); install.packages(pkg, lib = '$(LIB_DIR)', repos = c($(REPOS)), dependencies = TRUE)"
+
+packages-upgrade:
+	mkdir -p $(LIB_DIR)
+	$(RRscript) -e "old <- old.packages(repos = c($(REPOS))); install.packages(old, lib = '$(LIB_DIR)', repos = c($(REPOS)), dependencies = TRUE)"
+
+packages-all:
+	$(MULTI_R) PACKAGES="$(PKG_COMMON), $(PKG_TIDYVERSE), $(PKG_DEVTOOLS), $(PKG_GEO)" packages-install
+packages-common:
+	$(MULTI_R) PACKAGES="$(PKG_COMMON)" packages-install
+packages-tidyverse:
+	$(MULTI_R) PACKAGES="$(PKG_TIDYVERSE)" packages-install
+packages-devtools:
+	$(MULTI_R) PACKAGES="$(PKG_DEVTOOLS)" packages-install
+packages-geo:
+	$(MULTI_R) PACKAGES="$(PKG_GEO)" packages-install
+
+
+
+.PHONY: info \
+	build \
+	download prepare configure make make-check install make-aliases \
+	packages-install packages-upgrade \
+	packages-all packages-common packages-tidyverse \
+	packages-devtools packages-geo

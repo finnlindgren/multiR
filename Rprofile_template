@@ -1,0 +1,25 @@
+# Add the contents of this file to your local .Rprofile
+# The check for .../local/{version}/lib/R should be modified if you
+# changed the default PREFIX variables in multiR
+
+local({
+  # Modify this as desired, for INLA and/or other extra repositories
+  r <- c(INLA = "https://inla.r-inla-download.org/R/testing",
+         CRAN = "https://cloud.r-project.org/")
+    options(repos = r)
+})
+
+local({
+  home <- R.home()
+  new_lib <- NULL
+  if (length(grep(paste0("unstable"), R.version$version.string) == 1)) {
+    ver <- "R-devel"
+  } else {
+    ver <- paste0("R-", R.version$major, ".", R.version$minor)
+  }
+  # Check if path is like ".../local/ver/lib/R"
+  if (length(grep(paste0("/local/", ver, "/lib/R"), home) == 1)) {
+    new_lib <- gsub("/local/.*/lib/R", paste0("/local/", ver, "-lib"), home)
+  }
+  .libPaths(c(new_lib, .libPaths()))
+})
