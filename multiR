@@ -4,7 +4,7 @@ R_VERSION?=4.0.0
 PACKAGES?=
 
 MULTI_R?=$(shell which multiR)
-ifeq (devel,$(MULTI_R))
+ifeq (,$(MULTI_R))
   MULTI_R:=./multiR
 endif
 
