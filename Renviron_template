@@ -1,0 +1,6 @@
+# Add this to your local .Renviron file
+# The multiR script will also use the location from R_LIBS_USER
+# See ?.libPaths for details on what expansion options are available,
+# e.g. .../%p-library/%v for architechure specific lcation and only major.minor
+# version. %V includes major.minor.patch
+R_LIBS_USER=~/local/R-%V-lib

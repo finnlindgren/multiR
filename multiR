@@ -48,7 +48,6 @@ endif
 R_URL=$(R_URL_ROOT)$(R_FILENAME)
 
 INSTALL_DIR=$(ROOT_DIR)
-LIB_DIR=$(ROOT_DIR)-lib
 
 BIN_DIR=$(INSTALL_DIR)/bin
 RR=$(BIN_DIR)/R
@@ -56,6 +55,10 @@ RRscript=$(BIN_DIR)/Rscript
 
 default:
 	@echo "Usage: multiR R_VERSION=... [CMD]"
+	@echo ""
+	@echo "Prerequisite:"
+	@echo "   Set R_LIBS_USER in your ~/.Renviron file, e.g. by copying"
+	@echo "   the contents of Renviron_template supplied with multiR"
 	@echo ""
 	@echo "   CMD should be one of the following targets:"
 	@echo ""
@@ -68,7 +71,7 @@ default:
 	@echo "       configure"
 	@echo "       make"
 	@echo "       make-check (optional)"
-	@echo "       install"
+	@echo "       install (installs R and displays multiR information)"
 	@echo "       make-aliases (optional)"
 	@echo ""
 	@echo "   Optional package installation:" 
@@ -81,11 +84,11 @@ default:
 	@echo "       packages-geo (install commonly used packages)"
 	@echo ""
 	@echo "Workflow:"
-	@echo "   multiR R_VERSION ... info"
-	@echo "   multiR R_VERSION ... build"
-	@echo "   multiR R_VERSION ... make-aliases"
-	@echo "   multiR R_VERSION ... packages-all"
-	@echo "   multiR R_VERSION ... packages-upgrade"
+	@echo "   multiR R_VERSION=... info"
+	@echo "   multiR R_VERSION=... build"
+	@echo "   multiR R_VERSION=... make-aliases"
+	@echo "   multiR R_VERSION=... packages-all"
+	@echo "   multiR R_VERSION=... packages-upgrade"
 	@echo ""
 	@echo "Examples: multiR R_VERSION=3.6.2 CMD"
 	@echo "          multiR R_VERSION=devel CMD"
@@ -99,13 +102,11 @@ info:
 	@echo "R_URL = "$(R_URL)
 	@echo "Source dir:" $(SRC_DIR)
 	@echo "Installation dir:" $(ROOT_DIR)
-	@echo "Packages sources:" $(REPOS)
-	@echo "Packages target:" $(LIB_DIR)
-	@echo "libPaths:" `$(RRscript) -e ".libPaths()"`
-	@echo "# If versions and paths are inconsistent," \
-	      "check that you've added the multiR"
-	@echo "# Rprofile_template code to your" \
-	      ".Rprofile file.)"
+	@echo "Package sources:" $(REPOS)
+	@echo "Only valid after installation of the new R version:"
+	@echo "  R_LIBS_USER:" `$(RRscript) -e "Sys.getenv('R_LIBS_USER')"`
+	@echo "  libPaths:" `$(RRscript) -e ".libPaths()"`
+	@echo "Check the paths before running package installation targets"
 recursive-info:
 	$(MULTI_R) info
 
@@ -146,6 +147,8 @@ make-check:
 install:
 	rm -rf $(INSTALL_DIR)
 	$(MAKE) -C $(SRC_DIR) install
+	$(MULTI_R) packages-libdir
+	$(MULTI_R) info
 	@echo "Next steps: make-aliases (optional), packages-all (optional)"
 
 make-aliases:
@@ -155,14 +158,14 @@ make-aliases:
 
 
 
+packages-libdir:
+	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); if (!dir.exists(lib_dir)) { dir.create(lib_dir) }"
 
-packages-install:
-	mkdir -p $(LIB_DIR)
-	$(RRscript) -e "repos <- c($(REPOS)); lib_dir <- '$(LIB_DIR)'; pkg <- c($(PACKAGES)); installed <- installed.packages()[,"Package"]; old <- old.packages(repos = repos)[,'Package']; pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); install.packages(pkgs = pkg, lib = lib_dir, repos = repos, dependencies = TRUE)"
+packages-install: packages-libdir
+	$(RRscript) -e "repos <- c($(REPOS)); lib_dir <- Sys.getenv('R_LIBS_USER'); pkg <- c($(PACKAGES)); installed <- installed.packages()[,'Package']; old <- old.packages(repos = repos)[,'Package']; pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); install.packages(pkgs = pkg, lib = lib_dir, repos = repos, dependencies = TRUE)"
 
-packages-upgrade:
-	mkdir -p $(LIB_DIR)
-	$(RRscript) -e "repos <- c($(REPOS)); lib_dir <- '$(LIB_DIR)'; old <- old.packages(repos = repos)[,'Package']; install.packages(pkgs = old, lib = lib_dir, repos = repos, dependencies = TRUE)"
+packages-upgrade: packages-libdir
+	$(RRscript) -e "repos <- c($(REPOS)); lib_dir <- Sys.getenv('R_LIBS_USER'); old <- old.packages(repos = repos)[,'Package']; install.packages(pkgs = old, lib = lib_dir, repos = repos, dependencies = TRUE)"
 
 packages-all:
 	$(MULTI_R) PACKAGES="$(PKG_COMMON), $(PKG_TIDYVERSE), $(PKG_DEVTOOLS), $(PKG_GEO)" packages-install
@@ -180,6 +183,6 @@ packages-geo:
 .PHONY: info \
 	build \
 	download prepare configure make make-check install make-aliases \
-	packages-install packages-upgrade \
+	packages-libdir packages-install packages-upgrade \
 	packages-all packages-common packages-tidyverse \
 	packages-devtools packages-geo
