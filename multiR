@@ -29,9 +29,6 @@ PKG_DEVTOOLS='devtools', 'usethis', 'testthat', 'lintr', 'styler'
 PKG_GEO='ggmap', 'rgl', 'sphereplot', 'sp', 'rgdal', 'rgeos', \
   'spatstat', 'spatstat.data', 'maptools'
 
-REPOS=\
-  INLA='https://inla.r-inla-download.org/R/testing',\
-  CRAN='https://cloud.r-project.org/'
 SYSTEM_LIB_DEV=\
   tcl8.6-dev tk8.6-dev \
   libx11-dev libmagick++-dev libgit2-dev libssh2-1-dev \
@@ -102,8 +99,8 @@ info:
 	@echo "R_URL = "$(R_URL)
 	@echo "Source dir:" $(SRC_DIR)
 	@echo "Installation dir:" $(ROOT_DIR)
-	@echo "Package sources:" $(REPOS)
 	@echo "Only valid after installation of the new R version:"
+	@echo "  Package sources:" `$(RRscript) -e "options('repos')[['repos']]"`
 	@echo "  R_LIBS_USER:" `$(RRscript) -e "Sys.getenv('R_LIBS_USER')"`
 	@echo "  libPaths:" `$(RRscript) -e ".libPaths()"`
 	@echo "Check the paths before running package installation targets"
@@ -161,11 +158,17 @@ make-aliases:
 packages-libdir:
 	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); if (!dir.exists(lib_dir)) { dir.create(lib_dir) }"
 
+packages-install-show: packages-libdir
+	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); pkg <- c($(PACKAGES)); installed <- installed.packages()[,'Package']; old <- old.packages()[,'Package']; pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); print(pkg)"
+
 packages-install: packages-libdir
-	$(RRscript) -e "repos <- c($(REPOS)); lib_dir <- Sys.getenv('R_LIBS_USER'); pkg <- c($(PACKAGES)); installed <- installed.packages()[,'Package']; old <- old.packages(repos = repos)[,'Package']; pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); install.packages(pkgs = pkg, lib = lib_dir, repos = repos, dependencies = TRUE)"
+	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); pkg <- c($(PACKAGES)); installed <- installed.packages()[,'Package']; old <- old.packages()[,'Package']; pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); install.packages(pkgs = pkg, lib = lib_dir, dependencies = TRUE)"
+
+packages-upgrade-show: packages-libdir
+	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); old <- old.packages()[,'Package']; print(old)"
 
 packages-upgrade: packages-libdir
-	$(RRscript) -e "repos <- c($(REPOS)); lib_dir <- Sys.getenv('R_LIBS_USER'); old <- old.packages(repos = repos)[,'Package']; install.packages(pkgs = old, lib = lib_dir, repos = repos, dependencies = TRUE)"
+	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); old <- old.packages()[,'Package']; install.packages(pkgs = old, lib = lib_dir, dependencies = TRUE)"
 
 packages-all:
 	$(MULTI_R) PACKAGES="$(PKG_COMMON), $(PKG_TIDYVERSE), $(PKG_DEVTOOLS), $(PKG_GEO)" packages-install
