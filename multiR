@@ -27,14 +27,20 @@ PKG_COMMON='testthat', 'raster', \
 PKG_TIDYVERSE='tidyverse', 'ggplot2'
 PKG_DEVTOOLS='devtools', 'usethis', 'testthat', 'lintr', 'styler'
 PKG_GEO='ggmap', 'rgl', 'sphereplot', 'sp', 'rgdal', 'rgeos', \
-  'spatstat', 'spatstat.data', 'maptools'
+  'spatstat', 'spatstat.data', 'maptools', 'ncdf4'
 
 SYSTEM_LIB_DEV=\
   tcl8.6-dev tk8.6-dev \
   libx11-dev libmagick++-dev libgit2-dev libssh2-1-dev \
   libfftw3-dev bwidget \
   openjdk-11-jdk-headless \
-  libpcre2-dev
+  libpcre2-dev \
+  curl \
+  libreadline-dev \
+  libcurl4-openssl-dev \
+  libgdal-dev \
+  libgl-dev \
+  libglu1-mesa-dev
 
 R_FILENAME=$(R_FULL_VERSION).tar.gz
 ifeq (devel,$(R_MAJOR_VERSION))
@@ -119,7 +125,7 @@ download:
 	cd $(SRC_PREFIX) && \
 	    curl -O $(R_URL) && \
 	    tar xzvf $(R_FILENAME)
-	@echo "Next step: prepare (optional), configure"
+	@echo "Next step: prepare-system (optional), configure"
 
 prepare-system:
 	sudo aptitude update
@@ -156,7 +162,7 @@ make-aliases:
 
 
 packages-libdir:
-	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); if (!dir.exists(lib_dir)) { dir.create(lib_dir) }"
+	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); if (!dir.exists(lib_dir)) { dir.create(lib_dir, recursive = TRUE) }"
 
 packages-install-show: packages-libdir
 	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); pkg <- c($(PACKAGES)); installed <- installed.packages()[,'Package']; old <- old.packages()[,'Package']; pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); print(pkg)"
@@ -165,7 +171,7 @@ packages-install: packages-libdir
 	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); pkg <- c($(PACKAGES)); installed <- installed.packages()[,'Package']; old <- old.packages()[,'Package']; pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); install.packages(pkgs = pkg, lib = lib_dir, dependencies = TRUE)"
 
 packages-upgrade-show: packages-libdir
-	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); old <- old.packages()[,'Package']; print(old)"
+	$(RRscript) -e "old <- old.packages()[,'Package']; print(old)"
 
 packages-upgrade: packages-libdir
 	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); old <- old.packages()[,'Package']; install.packages(pkgs = old, lib = lib_dir, dependencies = TRUE)"
