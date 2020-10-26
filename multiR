@@ -27,7 +27,8 @@ PKG_COMMON='testthat', 'raster', \
 PKG_TIDYVERSE='tidyverse', 'ggplot2'
 PKG_DEVTOOLS='devtools', 'usethis', 'testthat', 'lintr', 'styler'
 PKG_GEO='ggmap', 'rgl', 'sphereplot', 'sp', 'rgdal', 'rgeos', \
-  'spatstat', 'spatstat.data', 'maptools', 'ncdf4'
+  'spatstat', 'spatstat.data', 'maptools', 'ncdf4', \
+  'sf'
 
 SYSTEM_LIB_DEV=\
   tcl8.6-dev tk8.6-dev \
@@ -40,7 +41,8 @@ SYSTEM_LIB_DEV=\
   libcurl4-openssl-dev \
   libgdal-dev \
   libgl-dev \
-  libglu1-mesa-dev
+  libglu1-mesa-dev \
+  libudunits2-dev
 
 R_FILENAME=$(R_FULL_VERSION).tar.gz
 ifeq (devel,$(R_MAJOR_VERSION))
