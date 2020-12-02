@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-R_VERSION?=4.0.0
+R_VERSION?=4.0.3
 PACKAGES?=
 
 MULTI_R?=$(shell which multiR)
@@ -61,9 +61,9 @@ RRscript=$(BIN_DIR)/Rscript
 default:
 	@echo "Usage: multiR R_VERSION=... [CMD]"
 	@echo ""
-	@echo "Prerequisite:"
-	@echo "   Set R_LIBS_USER in your ~/.Renviron file, e.g. by copying"
-	@echo "   the contents of Renviron_template supplied with multiR"
+	@echo "   Optional:"
+	@echo "     Set R_LIBS_USER in your ~/.Renviron file, e.g. by copying"
+	@echo "     the contents of Renviron_template supplied with multiR"
 	@echo ""
 	@echo "   CMD should be one of the following targets:"
 	@echo ""
@@ -140,6 +140,7 @@ configure:
 
 make:
 	$(MAKE) -j -C $(SRC_DIR)
+	$(MAKE) -j -C $(SRC_DIR)/src/nmath/standalone
 	@echo "Next steps: make-check, install"
 
 clean:
@@ -152,6 +153,7 @@ make-check:
 install:
 	rm -rf $(INSTALL_DIR)
 	$(MAKE) -C $(SRC_DIR) install
+	$(MAKE) -j -C $(SRC_DIR)/src/nmath/standalone install
 	$(MULTI_R) packages-libdir
 	$(MULTI_R) info
 	@echo "Next steps: make-aliases (optional), packages-all (optional)"

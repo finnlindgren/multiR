@@ -1,4 +1,5 @@
-# Add this to your local .Renviron file
+# Optional:
+# Add this to your local .Renviron file to use a specific library directory.
 # The multiR script will also use the location from R_LIBS_USER
 # See ?.libPaths for details on what expansion options are available,
 # e.g. .../%p-library/%v for architechure specific location and only major.minor
