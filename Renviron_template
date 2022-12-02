@@ -4,4 +4,4 @@
 # See ?.libPaths for details on what expansion options are available,
 # e.g. .../%p-library/%v for architechure specific location and only major.minor
 # version. %V includes major.minor.patch
-R_LIBS_USER=~/local/R-%V-lib
+R_LIBS_USER=~/R/%p-library/%v

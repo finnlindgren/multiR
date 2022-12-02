@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-R_VERSION?=4.0.3
+R_VERSION?=4.2.2
 PACKAGES?=
 
 MULTI_R?=$(shell which multiR)
@@ -79,7 +79,7 @@ default:
 	@echo "       install (installs R and displays multiR information)"
 	@echo "       make-aliases (optional)"
 	@echo ""
-	@echo "   Optional package installation:" 
+	@echo "   Optional package installation:"
 	@echo "       packages-install (install/upgrade specified packages)"
 	@echo "       packages-upgrade (upgrade old packages)"
 	@echo "       packages-all (Run the collection of packages-* targets)"
