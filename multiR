@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-R_VERSION?=4.2.2
+R_VERSION?=4.3.1
 PACKAGES?=
 
 MULTI_R?=$(shell which multiR)
@@ -169,13 +169,13 @@ packages-libdir:
 	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); if (!dir.exists(lib_dir)) { dir.create(lib_dir, recursive = TRUE) }"
 
 packages-install-show: packages-libdir
-	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); pkg <- c($(PACKAGES)); installed <- installed.packages()[,'Package']; old <- old.packages()[,'Package']; pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); print(pkg)"
+	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); pkg <- c($(PACKAGES)); installed <- installed.packages()[,'Package']; old <- old.packages()[,'Package']; pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); inames(pkg) <- NULL; print(pkg)"
 
 packages-install: packages-libdir
 	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); pkg <- c($(PACKAGES)); installed <- installed.packages()[,'Package']; old <- old.packages()[,'Package']; pkg <- union(setdiff(pkg, installed), intersect(pkg, old)); install.packages(pkgs = pkg, lib = lib_dir, dependencies = TRUE)"
 
 packages-upgrade-show: packages-libdir
-	$(RRscript) -e "old <- old.packages()[,'Package']; print(old)"
+	$(RRscript) -e "old <- old.packages()[,'Package']; names(old) <- NULL; print(old)"
 
 packages-upgrade: packages-libdir
 	$(RRscript) -e "lib_dir <- Sys.getenv('R_LIBS_USER'); old <- old.packages()[,'Package']; install.packages(pkgs = old, lib = lib_dir, dependencies = TRUE)"
