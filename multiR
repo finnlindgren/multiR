@@ -22,19 +22,19 @@ endif
 ROOT_DIR=$(ROOT_PREFIX)/$(R_FULL_VERSION)
 SRC_DIR=$(SRC_PREFIX)/$(R_FULL_VERSION)
 
-PKG_COMMON='testthat', 'raster', \
+PKG_COMMON='testthat', \
   'shiny', 'RColorBrewer', 'knitr', 'rmarkdown'
 PKG_TIDYVERSE='tidyverse', 'ggplot2'
 PKG_DEVTOOLS='devtools', 'usethis', 'testthat', 'lintr', 'styler'
-PKG_GEO='ggmap', 'rgl', 'sphereplot', 'sp', 'rgdal', 'rgeos', \
-  'spatstat', 'spatstat.data', 'maptools', 'ncdf4', \
-  'sf'
+PKG_GEO='ggmap', 'rgl', 'sphereplot', 'sp', \
+  'spatstat', 'spatstat.data', 'ncdf4', \
+  'sf', 'terra', 'raster'
 
 SYSTEM_LIB_DEV=\
   tcl8.6-dev tk8.6-dev \
   libx11-dev libmagick++-dev libgit2-dev libssh2-1-dev \
   libfftw3-dev bwidget \
-  openjdk-11-jdk-headless \
+  openjdk-17-jdk-headless \
   libpcre2-dev \
   curl \
   libreadline-dev \
@@ -47,8 +47,10 @@ SYSTEM_LIB_DEV=\
 R_FILENAME=$(R_FULL_VERSION).tar.gz
 ifeq (devel,$(R_MAJOR_VERSION))
   R_URL_ROOT=https://stat.ethz.ch/R/daily/
+  R_FILENAME_DEVEL=$(R_FILENAME)
 else
   R_URL_ROOT=https://cran.r-project.org/src/base/R-$(R_MAJOR_VERSION)/
+  R_FILENAME_DEVEL=no-need-to-redownload-old-versions
 endif
 R_URL=$(R_URL_ROOT)$(R_FILENAME)
 
@@ -121,12 +123,13 @@ build:
 	$(MULTI_R) make
 	$(MULTI_R) install
 
-download:
+$(SRC_PREFIX)/$(R_FILENAME):
 	rm -rf $(SRC_DIR)
 	mkdir -p $(SRC_PREFIX)
 	cd $(SRC_PREFIX) && \
-	    curl -O $(R_URL) && \
-	    tar xzvf $(R_FILENAME)
+	    curl -O $(R_URL)
+download: $(SRC_PREFIX)/$(R_FILENAME)
+	cd $(SRC_PREFIX) && tar xzvf $(R_FILENAME)
 	@echo "Next step: prepare-system (optional), configure"
 
 prepare-system:
@@ -198,4 +201,4 @@ packages-geo:
 	download prepare configure make make-check install make-aliases \
 	packages-libdir packages-install packages-upgrade \
 	packages-all packages-common packages-tidyverse \
-	packages-devtools packages-geo
+	packages-devtools packages-geo $(SRC_PREFIX)/$(R_FILENAME_DEVEL)
