@@ -47,8 +47,10 @@ SYSTEM_LIB_DEV=\
 R_FILENAME=$(R_FULL_VERSION).tar.gz
 ifeq (devel,$(R_MAJOR_VERSION))
   R_URL_ROOT=https://stat.ethz.ch/R/daily/
+  R_FILENAME_DEVEL=$(R_FILENAME)
 else
   R_URL_ROOT=https://cran.r-project.org/src/base/R-$(R_MAJOR_VERSION)/
+  R_FILENAME_DEVEL=no-need-to-redownload-old-versions
 endif
 R_URL=$(R_URL_ROOT)$(R_FILENAME)
 
@@ -121,12 +123,13 @@ build:
 	$(MULTI_R) make
 	$(MULTI_R) install
 
-download:
+$(SRC_PREFIX)/$(R_FILENAME):
 	rm -rf $(SRC_DIR)
 	mkdir -p $(SRC_PREFIX)
 	cd $(SRC_PREFIX) && \
-	    curl -O $(R_URL) && \
-	    tar xzvf $(R_FILENAME)
+	    curl -O $(R_URL)
+download: $(SRC_PREFIX)/$(R_FILENAME)
+	cd $(SRC_PREFIX) && tar xzvf $(R_FILENAME)
 	@echo "Next step: prepare-system (optional), configure"
 
 prepare-system:
@@ -198,4 +201,4 @@ packages-geo:
 	download prepare configure make make-check install make-aliases \
 	packages-libdir packages-install packages-upgrade \
 	packages-all packages-common packages-tidyverse \
-	packages-devtools packages-geo
+	packages-devtools packages-geo $(SRC_PREFIX)/$(R_FILENAME_DEVEL)
