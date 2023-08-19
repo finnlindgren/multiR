@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-R_VERSION?=4.2.2
+R_VERSION?=4.3.1
 PACKAGES?=
 
 MULTI_R?=$(shell which multiR)
@@ -22,19 +22,19 @@ endif
 ROOT_DIR=$(ROOT_PREFIX)/$(R_FULL_VERSION)
 SRC_DIR=$(SRC_PREFIX)/$(R_FULL_VERSION)
 
-PKG_COMMON='testthat', 'raster', \
+PKG_COMMON='testthat', \
   'shiny', 'RColorBrewer', 'knitr', 'rmarkdown'
 PKG_TIDYVERSE='tidyverse', 'ggplot2'
 PKG_DEVTOOLS='devtools', 'usethis', 'testthat', 'lintr', 'styler'
-PKG_GEO='ggmap', 'rgl', 'sphereplot', 'sp', 'rgdal', 'rgeos', \
-  'spatstat', 'spatstat.data', 'maptools', 'ncdf4', \
-  'sf'
+PKG_GEO='ggmap', 'rgl', 'sphereplot', 'sp', \
+  'spatstat', 'spatstat.data', 'ncdf4', \
+  'sf', 'terra', 'raster'
 
 SYSTEM_LIB_DEV=\
   tcl8.6-dev tk8.6-dev \
   libx11-dev libmagick++-dev libgit2-dev libssh2-1-dev \
   libfftw3-dev bwidget \
-  openjdk-11-jdk-headless \
+  openjdk-17-jdk-headless \
   libpcre2-dev \
   curl \
   libreadline-dev \
