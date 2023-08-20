@@ -23,10 +23,11 @@ ROOT_DIR=$(ROOT_PREFIX)/$(R_FULL_VERSION)
 SRC_DIR=$(SRC_PREFIX)/$(R_FULL_VERSION)
 
 PKG_COMMON='testthat', \
-  'shiny', 'RColorBrewer', 'knitr', 'rmarkdown'
+  'shiny', 'RColorBrewer', 'knitr', 'rmarkdown', \
+  'Rcpp'
 PKG_TIDYVERSE='tidyverse', 'ggplot2'
-PKG_DEVTOOLS='devtools', 'usethis', 'testthat', 'lintr', 'styler'
-PKG_GEO='ggmap', 'rgl', 'sphereplot', 'sp', \
+PKG_DEVTOOLS='devtools', 'usethis', 'testthat', 'lintr', 'styler', 'pkgdown', 'roxygen2'
+PKG_GEO='rgl', 'sp', \
   'spatstat', 'spatstat.data', 'ncdf4', \
   'sf', 'terra', 'raster'
 
